@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1a5f2a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Maize Manager" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>Maize Plantation Manager | Nyamutale Vivid</title>
+  <style>
+    :root {
+      --primary: #1a5f2a; --primary-dark: #0f3d1a; --accent: #f4a261;
+      --bg: #f7f9f7; --card: #ffffff; --text: #1a1a1a; --muted: #5a6a5a;
+      --success: #2d8a4e; --danger: #e76f51; --border: #dce5dc;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.45;
+      padding-bottom: 90px; -webkit-tap-highlight-color: transparent;
+    }
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white; padding: 14px 14px 16px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    header h1 { font-size: 1.15rem; font-weight: 700; }
+    header p { font-size: 0.75rem; opacity: 0.9; margin-top: 2px; }
+    .week-badge {
+      display: inline-block; background: rgba(255,255,255,0.2);
+      padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; margin-top: 6px;
+    }
+    #installBtn {
+      display: none; margin-top: 8px; background: #f4a261; color: #1a1a1a;
+      border: none; padding: 7px 14px; border-radius: 20px; font-weight: 700;
+      font-size: 0.8rem; cursor: pointer;
+    }
+    nav {
+      display: flex; background: white; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 90; overflow-x: auto;
+    }
+    nav button {
+      flex: 1; min-width: 64px; padding: 11px 4px; border: none; background: none;
+      font-size: 0.72rem; font-weight: 600; color: var(--muted);
+      border-bottom: 3px solid transparent; cursor: pointer;
+    }
+    nav button.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .screen { display: none; padding: 12px; }
+    .screen.active { display: block; }
+    .card {
+      background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px;
+      box-shadow: var(--shadow); border: 1px solid var(--border);
+    }
+    .card h3 { font-size: 0.92rem; margin-bottom: 6px; color: var(--primary-dark); }
+    .status-pill {
+      display: inline-block; padding: 2px 9px; border-radius: 20px;
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    }
+    .status-Pending { background: #fef3c7; color: #92400e; }
+    .status-InProgress { background: #dbeafe; color: #1e40af; }
+    .status-Done { background: #d1fae5; color: #065f46; }
+    .task-meta { font-size: 0.76rem; color: var(--muted); margin: 3px 0; }
+    .task-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    button.btn {
+      border: none; border-radius: 8px; padding: 9px 12px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: #e8f0e8; color: var(--primary-dark); }
+    .btn-danger { background: #fee2e2; color: #991b1b; }
+    .btn-accent { background: var(--accent); color: #1a1a1a; }
+    .btn-sm { padding: 6px 10px; font-size: 0.72rem; }
+    .btn-block { width: 100%; }
+    .progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+    .progress-fill { height: 100%; background: var(--success); border-radius: 4px; transition: width 0.3s; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .stat-box {
+      background: white; border-radius: 12px; padding: 12px; text-align: center;
+      box-shadow: var(--shadow); border: 1px solid var(--border);
+    }
+    .stat-box .num { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+    .stat-box .label { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+    input, select, textarea {
+      width: 100%; padding: 10px 11px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 0.88rem; margin-top: 3px; background: #fafafa;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--primary); border-color: var(--primary); background: white;
+    }
+    textarea { min-height: 60px; resize: vertical; }
+    label { font-size: 0.75rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 2px; }
+    .form-group { margin-bottom: 12px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .modal {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      z-index: 200; align-items: flex-end; justify-content: center;
+    }
+    .modal.open { display: flex; }
+    .modal-content {
+      background: white; width: 100%; max-width: 520px;
+      border-radius: 16px 16px 0 0; padding: 18px; max-height: 92vh; overflow-y: auto;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .modal-header h2 { font-size: 1rem; }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--muted); line-height: 1; }
+    .phase-header {
+      background: var(--primary); color: white; padding: 7px 11px; border-radius: 8px;
+      font-size: 0.8rem; font-weight: 700; margin: 14px 0 7px;
+    }
+    .phase-header:first-child { margin-top: 0; }
+    .empty-state { text-align: center; padding: 28px 14px; color: var(--muted); font-size: 0.88rem; }
+    .toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      background: #1a1a1a; color: white; padding: 10px 16px; border-radius: 8px;
+      font-size: 0.82rem; z-index: 300; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+    .filter-bar { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 4px; }
+    .filter-chip {
+      padding: 5px 11px; border-radius: 20px; font-size: 0.7rem; font-weight: 600;
+      border: 1px solid var(--border); background: white; white-space: nowrap; cursor: pointer;
+    }
+    .filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .instruction-box {
+      background: #f0f7f0; border-left: 4px solid var(--primary);
+      padding: 8px 10px; border-radius: 0 8px 8px 0; font-size: 0.78rem; margin: 6px 0;
+    }
+    .req-box {
+      background: #fff8f0; border: 1px solid #f4d9b0; border-radius: 8px;
+      padding: 8px 10px; margin: 6px 0; font-size: 0.8rem;
+    }
+    .req-box strong { color: #9a5b00; }
+    .spray-box {
+      background: #eef6ff; border: 1px solid #b6d4fe; border-radius: 8px;
+      padding: 8px 10px; margin: 6px 0; font-size: 0.8rem;
+    }
+    .spray-box strong { color: #0a58ca; }
+    .labour-box {
+      background: #f5f0ff; border: 1px solid #d0bcff; border-radius: 8px;
+      padding: 8px 10px; margin: 6px 0; font-size: 0.8rem;
+    }
+    .labour-box strong { color: #5b2c9a; }
+    .unit-box {
+      background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px;
+      padding: 8px 10px; margin: 6px 0; font-size: 0.8rem;
+    }
+    .unit-box strong { color: #92400e; }
+    .budget-card-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 6px; font-size: 0.75rem;
+    }
+    .budget-card-grid > div { background: #f7f9f7; padding: 5px 6px; border-radius: 6px; text-align: center; }
+    .budget-card-grid .lbl { font-size: 0.62rem; color: var(--muted); }
+    .variance-pos { color: var(--success); font-weight: 700; }
+    .variance-neg { color: var(--danger); font-weight: 700; }
+    .section-title {
+      font-size: 0.88rem; font-weight: 700; color: var(--primary-dark);
+      margin: 14px 0 7px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .help-text { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+    .pay-type-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 12px;
+      font-size: 0.65rem; font-weight: 700;
+    }
+    .pay-fixed { background: #e0e7ff; color: #3730a3; }
+    .pay-hourly { background: #fce7f3; color: #9d174d; }
+    .pay-unit { background: #fef3c7; color: #92400e; }
+    footer { text-align: center; padding: 14px; font-size: 0.65rem; color: var(--muted); }
+    .hidden { display: none !important; }
+
+    /* Multi-worker rows */
+    .worker-row {
+      background: #f8faf8;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .worker-row .row-num {
+      position: absolute; top: 6px; right: 8px;
+      font-size: 0.65rem; color: var(--muted); font-weight: 700;
+    }
+    .worker-row .remove-btn {
+      position: absolute; top: 4px; right: 4px;
+      background: #fee2e2; color: #991b1b; border: none;
+      width: 26px; height: 26px; border-radius: 50%;
+      font-size: 0.9rem; cursor: pointer; line-height: 1;
+    }
+    .worker-calc {
+      font-size: 0.75rem; color: var(--primary-dark);
+      margin-top: 6px; font-weight: 600;
+    }
+    .batch-total {
+      background: #1a5f2a; color: white; border-radius: 10px;
+      padding: 12px; margin: 12px 0; text-align: center;
+      font-size: 0.95rem; font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌽 Maize Plantation Manager</h1>
+    <p>Nyamutale Vivid • 2-Acre Field</p>
+    <div class="week-badge" id="currentWeekBadge">Loading…</div>
+    <button id="installBtn" onclick="installApp()">⬇ Install App on Home Screen</button>
+  </header>
+
+  <nav>
+    <button class="active" data-screen="dashboard">Home</button>
+    <button data-screen="tasks">Tasks</button>
+    <button data-screen="labour">Labour</button>
+    <button data-screen="budget">Budget</button>
+    <button data-screen="notes">Notes</button>
+  </nav>
+
+  <div id="dashboard" class="screen active">
+    <div class="stat-grid">
+      <div class="stat-box"><div class="num" id="statDone">0</div><div class="label">Tasks Done</div></div>
+      <div class="stat-box"><div class="num" id="statPending">0</div><div class="label">Still Open</div></div>
+      <div class="stat-box"><div class="num" id="statLabour">0</div><div class="label">Labour Due</div></div>
+      <div class="stat-box"><div class="num" id="statSpent">0</div><div class="label">Total Spent</div></div>
+    </div>
+    <div class="card"><h3>This Week’s Priority</h3><div id="thisWeekTasks"><p class="empty-state">Set planting date to see priorities.</p></div></div>
+    <div class="card"><h3>Upcoming (Next 2 Weeks)</h3><div id="upcomingTasks"></div></div>
+    <div class="card">
+      <h3>Money Snapshot</h3>
+      <div class="progress-bar"><div class="progress-fill" id="budgetBar" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-top:6px;">
+        <span>Spent: <strong id="budgetSpent">0</strong></span>
+        <span>Budget: <strong id="budgetTotal">0</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="tasks" class="screen">
+    <div class="filter-bar">
+      <div class="filter-chip active" data-filter="all">All</div>
+      <div class="filter-chip" data-filter="Pending">Pending</div>
+      <div class="filter-chip" data-filter="InProgress">In Progress</div>
+      <div class="filter-chip" data-filter="Done">Done</div>
+    </div>
+    <p class="help-text" style="margin-bottom:8px;">Tap a task to edit. Use Labour tab to record multiple workers at once.</p>
+    <div id="taskList"></div>
+  </div>
+
+  <div id="labour" class="screen">
+    <div class="card">
+      <h3>Labour Summary</h3>
+      <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.88rem;">
+        <span>Total Amount Due</span><strong id="labourTotal">0 UGX</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.88rem;">
+        <span>Total Amount Paid</span><strong id="labourPaid" style="color:var(--success)">0 UGX</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.88rem;">
+        <span>Still Outstanding</span><strong id="labourOutstanding" style="color:var(--danger)">0 UGX</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.88rem;">
+        <span>Worker Records</span><strong id="labourCount">0</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.88rem;">
+        <span>Total Units / Hours</span><strong id="labourUnits">0</strong>
+      </div>
+    </div>
+    <div class="card" id="savedWorkersCard">
+      <h3>Saved Labourers</h3>
+      <p class="help-text" style="margin-bottom:8px;">Names you have used are saved here. Tap a name to reuse it quickly.</p>
+      <div id="savedWorkersList" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      <div class="form-group" style="margin-top:10px;margin-bottom:0;">
+        <label>Add new labourer to list</label>
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="newWorkerName" placeholder="e.g. Mugume Alex" style="flex:1;" />
+          <button class="btn btn-secondary btn-sm" onclick="addSavedWorker()">Save</button>
+        </div>
+      </div>
+    </div>
+    <div class="section-title">
+      <span>Labour Records</span>
+      <button class="btn btn-accent btn-sm" onclick="openLabourNew()">+ Add Workers</button>
+    </div>
+    <p class="help-text" style="margin-bottom:8px;">
+      Add <strong>many workers at once</strong>. Choose Negotiated, Per Hour, or Per Unit (e.g. trees at UGX 30 each).
+      Each worker gets their own quantity / hours and previous balance.
+    </p>
+    <div id="labourList"></div>
+  </div>
+
+  <div id="budget" class="screen">
+    <div class="card">
+      <h3>Budget Summary</h3>
+      <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.88rem;"><span>Materials Budgeted</span><strong id="totalBudgeted">0 UGX</strong></div>
+      <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.88rem;"><span>Materials Spent</span><strong id="totalSpent">0 UGX</strong></div>
+      <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.88rem;"><span>Labour Due</span><strong id="totalLabourInBudget">0 UGX</strong></div>
+      <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.88rem;"><span>Grand Total</span><strong id="grandTotalSpent">0 UGX</strong></div>
+      <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:0.88rem;"><span>Variance</span><strong id="totalVariance">0 UGX</strong></div>
+    </div>
+    <div class="section-title">
+      <span>Materials & Other Costs</span>
+      <button class="btn btn-accent btn-sm" onclick="openBudgetNew()">+ Add Item</button>
+    </div>
+    <div id="budgetList"></div>
+  </div>
+
+  <div id="notes" class="screen">
+    <div class="card">
+      <h3>Season Log</h3>
+      <div id="notesList"></div>
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:8px;" onclick="exportData()">Export All Data (JSON)</button>
+    <button class="btn btn-secondary btn-block" style="margin-top:8px;" onclick="resetSeason()">Reset Season</button>
+  </div>
+
+  <!-- TASK MODAL -->
+  <div class="modal" id="taskModal">
+    <div class="modal-content">
+      <div class="modal-header"><h2 id="modalTitle">Edit Task</h2><button class="close-btn" onclick="closeModal()">&times;</button></div>
+      <div class="form-group"><label>Task Name</label><input type="text" id="editTaskName" /></div>
+      <div class="form-group"><label>Phase</label>
+        <select id="editPhase">
+          <option>Pre-Planting</option><option>Planting</option><option>In-Season Management</option><option>Harvesting</option><option>Storage</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Target Week Label</label><input type="text" id="editWeek" /></div>
+        <div class="form-group"><label>Week Number</label><input type="number" id="editWeekNum" /></div>
+      </div>
+      <div class="form-group"><label>Required Input / Material</label><input type="text" id="editInput" /></div>
+      <div class="form-group"><label>Volume / Quantity Required</label><input type="text" id="editVolume" /></div>
+      <div class="form-group"><label>Instructions</label><textarea id="editInstructions"></textarea></div>
+      <div class="form-group"><label>Status</label>
+        <select id="editStatus"><option value="Pending">Pending</option><option value="InProgress">In Progress</option><option value="Done">Done</option></select>
+      </div>
+      <div class="form-group"><label>Date Done</label><input type="date" id="editDate" /></div>
+      <div class="form-group"><label>Notes</label><textarea id="editNotes"></textarea></div>
+      <button class="btn btn-primary btn-block" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+
+  <!-- LABOUR MODAL – MULTI WORKER -->
+  <div class="modal" id="labourModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="labourModalTitle">Add Workers</h2>
+        <button class="close-btn" onclick="closeLabourModal()">&times;</button>
+      </div>
+
+      <!-- Shared fields -->
+      <div class="form-group">
+        <label>Date of Work</label>
+        <input type="date" id="labDate" />
+      </div>
+      <div class="form-group">
+        <label>Linked Task (optional)</label>
+        <select id="labTaskId"><option value="">— Not linked —</option></select>
+      </div>
+      <div class="form-group">
+        <label>Kind of Payment (same for all workers below)</label>
+        <select id="labPayType" onchange="togglePayType()">
+          <option value="unit">Per Unit (e.g. per tree)</option>
+          <option value="hourly">Working per hour</option>
+          <option value="negotiated">Negotiated (fixed amount each)</option>
+        </select>
+      </div>
+
+      <!-- Shared rate for unit / hourly -->
+      <div id="sharedRateBox">
+        <div id="unitShared" class="form-row">
+          <div class="form-group">
+            <label>Unit name</label>
+            <input type="text" id="labUnitName" value="tree" placeholder="tree, bag…" />
+          </div>
+          <div class="form-group">
+            <label>Rate per unit (UGX)</label>
+            <input type="number" id="labUnitRate" value="30" min="0" step="1" oninput="recalcAllWorkers()" />
+          </div>
+        </div>
+        <div id="hourlyShared" class="form-group hidden">
+          <label>Amount per Hour (UGX) – same rate for all</label>
+          <input type="number" id="labRate" value="3000" min="0" step="500" oninput="recalcAllWorkers()" />
+        </div>
+      </div>
+
+      <!-- Dynamic worker list -->
+      <div class="section-title" style="margin-top:4px;">
+        <span>Workers</span>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="addWorkerRow()">+ Add Worker</button>
+      </div>
+      <datalist id="workerNameList"></datalist>
+      <div id="workerRows"></div>
+
+      <div class="batch-total" id="batchTotal">Total due for this group: 0 UGX</div>
+
+      <!-- Spraying optional -->
+      <div style="background:#eef6ff;border-radius:10px;padding:12px;margin:12px 0;">
+        <div style="font-weight:700;font-size:0.85rem;color:#0a58ca;margin-bottom:8px;">🚿 Spraying (optional – whole group)</div>
+        <div class="form-group"><label>Number of 20-Litre tanks sprayed</label><input type="number" id="labTanks" min="0" step="1" oninput="calcSprayCosts()" /></div>
+        <div class="form-row">
+          <div class="form-group"><label>Cost of bringing water (UGX)</label><input type="number" id="labWaterCost" min="0" step="500" oninput="calcSprayCosts()" /></div>
+          <div class="form-group"><label>Cost per 20L tank (UGX)</label><input type="number" id="labSprayPerTank" min="0" step="500" oninput="calcSprayCosts()" /></div>
+        </div>
+        <div class="form-group"><label>Spray total (auto)</label><input type="number" id="labSprayTotal" min="0" readonly style="background:#e8f0fe;" /></div>
+      </div>
+
+      <div class="form-group"><label>Notes (optional)</label><textarea id="labNotes" placeholder="e.g. Day 4 ground clearing…"></textarea></div>
+
+      <button class="btn btn-primary btn-block" onclick="saveLabourBatch()">Save All Workers</button>
+      <button class="btn btn-danger btn-block" id="deleteLabourBtn" style="margin-top:8px;display:none;" onclick="deleteLabour()">Delete This Record</button>
+    </div>
+  </div>
+
+  <!-- BUDGET MODAL -->
+  <div class="modal" id="budgetModal">
+    <div class="modal-content">
+      <div class="modal-header"><h2 id="budgetModalTitle">Edit Cost Item</h2><button class="close-btn" onclick="closeBudgetModal()">&times;</button></div>
+      <div class="form-group"><label>Item Description</label><input type="text" id="editItemName" /></div>
+      <div class="form-group"><label>Category</label>
+        <select id="editCategory">
+          <option>Seeds</option><option>Herbicides</option><option>Insecticides</option>
+          <option>Fertilizers</option><option>Labor & Machinery</option><option>Storage</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Quantity</label><input type="number" id="editQty" min="0" step="0.01" oninput="autoCalcBudgeted()" /></div>
+        <div class="form-group"><label>Unit Cost (UGX)</label><input type="number" id="editUnitCost" min="0" step="100" oninput="autoCalcBudgeted()" /></div>
+      </div>
+      <div class="form-group"><label>Total Budgeted (UGX)</label><input type="number" id="editBudgeted" min="0" step="1000" /></div>
+      <div class="form-group"><label>Actual Spent (UGX)</label><input type="number" id="editActual" min="0" step="1000" /></div>
+      <div class="form-group"><label>Notes</label><input type="text" id="editBudgetNotes" /></div>
+      <button class="btn btn-primary btn-block" onclick="saveBudgetItem()">Save</button>
+      <button class="btn btn-danger btn-block" id="deleteBudgetBtn" style="margin-top:8px;display:none;" onclick="deleteBudgetItem()">Delete</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <footer>Nyamutale Vivid • Maize Plantation Manager • Offline capable</footer>
+
+  <script>
+    const defaultTasks = [
+      { id:1, phase:"Pre-Planting", task:"Field Clearance & Grass Burndown", week:"Wks -4 to -3", weekNum:-4, input:"Glyphosate (Roundup/Glycel)", volume:"2.5 Liters", instructions:"Mix 200ml per 20L water tank. Cover both acres.", status:"Pending", dateDone:"", notes:"" },
+      { id:2, phase:"Pre-Planting", task:"Mechanical Tillage (Deep Ploughing)", week:"Wks -2 to -1", weekNum:-2, input:"Tractor/Labor Rental", volume:"2 Acres", instructions:"Plough to 20-30cm to bury destroyed weeds & expose pests.", status:"Pending", dateDone:"", notes:"" },
+      { id:3, phase:"Planting", task:"Sowing Certified Hybrid Seeds", week:"Wk 0", weekNum:0, input:"Certified Hybrid (Bazooka / Longe 10H)", volume:"20 Kg", instructions:"Calibrate strictly: Row 75cm × Plant 25cm.", status:"Pending", dateDone:"", notes:"" },
+      { id:4, phase:"Planting", task:"Pre-Emergence Soil Barrier Shield", week:"Wk 0", weekNum:0, input:"Atrazine + Acetochlor (Bullet/Lumax)", volume:"4 Liters", instructions:"Mix 330ml per 20L tank. Spray within 48 hours of sowing.", status:"Pending", dateDone:"", notes:"" },
+      { id:5, phase:"In-Season Management", task:"1st Fall Armyworm (FAW) Spray", week:"Wks 2 to 3", weekNum:2, input:"Emamectin Benzoate (Striker/Rocket)", volume:"200 Grams", instructions:"Mix 15-20g powder. Spray directly into plant funnels early AM/late PM.", status:"Pending", dateDone:"", notes:"" },
+      { id:6, phase:"In-Season Management", task:"Basal Soil Fertilization", week:"Wks 2 to 3", weekNum:2, input:"NPK 17:17:17 or DAP Fertilizer", volume:"100 Kg (2 Bags)", instructions:"Apply 5cm deep and 5cm away from the crop base.", status:"Pending", dateDone:"", notes:"" },
+      { id:7, phase:"In-Season Management", task:"Post-Emergence Weed Spot Cleaning", week:"Wks 4 to 5", weekNum:4, input:"Selective Herbicides (Stellar Star)", volume:"1 Liter", instructions:"Mix 80ml per 20L tank. Target weed escapees only.", status:"Pending", dateDone:"", notes:"" },
+      { id:8, phase:"In-Season Management", task:"2nd FAW Insecticide Rotation", week:"Wk 6", weekNum:6, input:"Thiamethoxam + Lambda-Cyhalothrin", volume:"500 ml", instructions:"Mix 40ml per 20L tank. Switch chemical class to prevent resistance.", status:"Pending", dateDone:"", notes:"" },
+      { id:9, phase:"In-Season Management", task:"Top-Dressing Crop Fertilization", week:"Wks 6 to 7", weekNum:6, input:"Urea or CAN Fertilizer", volume:"100 Kg (2 Bags)", instructions:"Apply around knee-high plants right before forecasted rain.", status:"Pending", dateDone:"", notes:"" },
+      { id:10, phase:"Harvesting", task:"Direct Field Cobs Harvesting", week:"Wks 16 to 17", weekNum:16, input:"Manual Labor / Harvesting Sacks", volume:"2 Acres", instructions:"Pluck drooping cobs directly from standing stalks. Avoid field stacking.", status:"Pending", dateDone:"", notes:"" },
+      { id:11, phase:"Harvesting", task:"Shelling & De-husking", week:"Wk 17", weekNum:17, input:"Motorized Sheller Rental", volume:"Half Day", instructions:"Process immediately upon harvest to eliminate field rat damage.", status:"Pending", dateDone:"", notes:"" },
+      { id:12, phase:"Storage", task:"Drying on Clean Tarpaulins", week:"Wks 18 to 19", weekNum:18, input:"Clean Tarps & Moisture Meter", volume:"Target ≤ 13.5%", instructions:"Dry thoroughly until grains crack sharply to prevent aflatoxins.", status:"Pending", dateDone:"", notes:"" },
+      { id:13, phase:"Storage", task:"Air-tight Hermetic Sealing", week:"Wks 19 to 20", weekNum:19, input:"Multi-layer Hermetic Bags (PICS/Elite)", volume:"45 Bags (100kg)", instructions:"Pack untreated dry grain. Twist and seal inner plastic liners airtight.", status:"Pending", dateDone:"", notes:"" }
+    ];
+    const defaultBudget = [
+      { id:1, item:"Certified Hybrid Maize Seed (Bazooka/Longe 10H)", category:"Seeds", qty:20, unitCost:12000, budgeted:240000, actual:0, notes:"" },
+      { id:2, item:"Glyphosate Burndown Herbicide (Roundup/Glycel)", category:"Herbicides", qty:3, unitCost:28000, budgeted:84000, actual:0, notes:"" },
+      { id:3, item:"Pre-Emergence Herbicide (Bullet SC/Lumax)", category:"Herbicides", qty:4, unitCost:35000, budgeted:140000, actual:0, notes:"" },
+      { id:4, item:"Selective Post-Emergence Herbicide (Stellar Star)", category:"Herbicides", qty:1, unitCost:95000, budgeted:95000, actual:0, notes:"" },
+      { id:5, item:"Emamectin Benzoate FAW Insecticide (Striker)", category:"Insecticides", qty:4, unitCost:15000, budgeted:60000, actual:0, notes:"" },
+      { id:6, item:"Thiamethoxam + Lambda Combo Insecticide", category:"Insecticides", qty:1, unitCost:45000, budgeted:45000, actual:0, notes:"" },
+      { id:7, item:"NPK 17:17:17 / DAP Basal Fertilizer", category:"Fertilizers", qty:2, unitCost:190000, budgeted:380000, actual:0, notes:"" },
+      { id:8, item:"Urea / CAN Nitrogen Top-Dressing Fertilizer", category:"Fertilizers", qty:2, unitCost:180000, budgeted:360000, actual:0, notes:"" },
+      { id:9, item:"Tractor Ploughing & Land Preparation Service", category:"Labor & Machinery", qty:2, unitCost:150000, budgeted:300000, actual:0, notes:"" },
+      { id:10, item:"Motorized Sheller Machine Rental", category:"Labor & Machinery", qty:1, unitCost:120000, budgeted:120000, actual:0, notes:"" },
+      { id:11, item:"Premium Multi-layer Hermetic Storage Bags", category:"Storage", qty:45, unitCost:10000, budgeted:450000, actual:0, notes:"" }
+    ];
+
+    let tasks=[], budget=[], labour=[], savedWorkers=[];
+    let currentTaskId=null, currentBudgetId=null, currentLabourId=null;
+    let isNewBudget=false, isNewLabour=false, currentFilter="all";
+    let plantingDate=null, nextBudgetId=100, nextLabourId=1;
+    let workerRowCount = 0;
+
+    function loadData() {
+      const saved = localStorage.getItem("maizeManager_v5");
+      if (saved) {
+        const d = JSON.parse(saved);
+        tasks = d.tasks || JSON.parse(JSON.stringify(defaultTasks));
+        budget = d.budget || JSON.parse(JSON.stringify(defaultBudget));
+        labour = d.labour || [];
+        savedWorkers = d.savedWorkers || [];
+        plantingDate = d.plantingDate || null;
+        nextBudgetId = d.nextBudgetId || 100;
+        nextLabourId = d.nextLabourId || 1;
+      } else {
+        tasks = JSON.parse(JSON.stringify(defaultTasks));
+        budget = JSON.parse(JSON.stringify(defaultBudget));
+        labour = [];
+        savedWorkers = [];
+      }
+      // Also collect names from existing labour records
+      labour.forEach(r => {
+        if (r.workers && !savedWorkers.includes(r.workers)) savedWorkers.push(r.workers);
+      });
+      savedWorkers.sort((a,b) => a.localeCompare(b));
+    }
+    function saveData() {
+      localStorage.setItem("maizeManager_v5", JSON.stringify({
+        tasks, budget, labour, savedWorkers, plantingDate, nextBudgetId, nextLabourId, savedAt: new Date().toISOString()
+      }));
+    }
+
+    document.querySelectorAll("nav button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.screen).classList.add("active");
+        if (btn.dataset.screen === "dashboard") renderDashboard();
+        if (btn.dataset.screen === "tasks") renderTasks();
+        if (btn.dataset.screen === "labour") renderLabour();
+        if (btn.dataset.screen === "budget") renderBudget();
+        if (btn.dataset.screen === "notes") renderNotes();
+      });
+    });
+
+    function formatUGX(n) { return Number(n||0).toLocaleString("en-UG"); }
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg; t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2200);
+    }
+    function getCurrentWeekNum() {
+      if (!plantingDate) return null;
+      return Math.floor((new Date() - new Date(plantingDate)) / (1000*60*60*24*7));
+    }
+    function labourTotal() { return labour.reduce((s,r) => s + (Number(r.amount)||0), 0); }
+    function labourPaidTotal() { return labour.reduce((s,r) => s + (Number(r.paid)||0), 0); }
+    function labourUnitsTotal() {
+      return labour.reduce((s,r) => {
+        if (r.payType === "unit") return s + (Number(r.qty)||0);
+        if (r.payType === "hourly") return s + (Number(r.hours)||0);
+        return s;
+      }, 0);
+    }
+    function addSavedWorker() {
+      const name = document.getElementById("newWorkerName").value.trim();
+      if (!name) { alert("Enter a name"); return; }
+      if (!savedWorkers.includes(name)) {
+        savedWorkers.push(name);
+        savedWorkers.sort((a,b) => a.localeCompare(b));
+        saveData();
+      }
+      document.getElementById("newWorkerName").value = "";
+      renderSavedWorkers();
+      showToast(name + " saved");
+    }
+    function removeSavedWorker(name) {
+      if (!confirm("Remove " + name + " from saved list?")) return;
+      savedWorkers = savedWorkers.filter(n => n !== name);
+      saveData();
+      renderSavedWorkers();
+    }
+    function renderSavedWorkers() {
+      const el = document.getElementById("savedWorkersList");
+      if (el) {
+        if (!savedWorkers.length) {
+          el.innerHTML = '<span class="help-text">No saved labourers yet. They appear when you save labour records.</span>';
+        } else {
+          el.innerHTML = savedWorkers.map(n =>
+            '<span style="background:#e8f0e8;padding:5px 10px;border-radius:16px;font-size:0.78rem;display:inline-flex;align-items:center;gap:4px;">' +
+            '<span style="cursor:pointer;" onclick="useSavedWorker(\'' + n.replace(/'/g, "\\'") + '\')">' + n + '</span>' +
+            '<span style="cursor:pointer;color:#991b1b;font-weight:700;" onclick="removeSavedWorker(\'' + n.replace(/'/g, "\\'") + '\')" title="Remove">×</span></span>'
+          ).join("");
+        }
+      }
+      // Update autocomplete datalist
+      const dl = document.getElementById("workerNameList");
+      if (dl) {
+        dl.innerHTML = savedWorkers.map(n => '<option value="' + n.replace(/"/g, '&quot;') + '">').join("");
+      }
+    }
+    function useSavedWorker(name) {
+      // Fill the first empty worker name field, or add a new row
+      const rows = document.querySelectorAll(".worker-row .w-name");
+      let filled = false;
+      for (const inp of rows) {
+        if (!inp.value.trim()) { inp.value = name; filled = true; break; }
+      }
+      if (!filled) {
+        addWorkerRow({ name: name, qty: "", prevBal: 0, paid: "" });
+      }
+      // Open labour modal if not open
+      if (!document.getElementById("labourModal").classList.contains("open")) {
+        openLabourNew();
+        // after open, set first row name
+        setTimeout(() => {
+          const first = document.querySelector(".worker-row .w-name");
+          if (first && !first.value) first.value = name;
+        }, 50);
+      }
+      showToast(name + " selected");
+    }
+
+    // ========== DASHBOARD ==========
+    function renderDashboard() {
+      document.getElementById("statDone").textContent = tasks.filter(t=>t.status==="Done").length;
+      document.getElementById("statPending").textContent = tasks.filter(t=>t.status!=="Done").length;
+      const labCost = labourTotal(), matSpent = budget.reduce((s,b)=>s+(Number(b.actual)||0),0);
+      const totalSpent = matSpent + labCost, totalBudgeted = budget.reduce((s,b)=>s+(Number(b.budgeted)||0),0);
+      document.getElementById("statLabour").textContent = formatUGX(labCost);
+      document.getElementById("statSpent").textContent = formatUGX(totalSpent);
+      document.getElementById("budgetSpent").textContent = formatUGX(totalSpent)+" UGX";
+      document.getElementById("budgetTotal").textContent = formatUGX(totalBudgeted)+" UGX";
+      document.getElementById("budgetBar").style.width = (totalBudgeted ? Math.min(100, Math.round(totalSpent/totalBudgeted*100)) : 0) + "%";
+
+      const weekNum = getCurrentWeekNum();
+      const badge = document.getElementById("currentWeekBadge");
+      if (plantingDate) badge.textContent = "Week "+weekNum+" • Planted "+plantingDate;
+      else badge.innerHTML = 'No planting date • <span style="text-decoration:underline;cursor:pointer" onclick="setPlantingDate()">Set Week 0</span>';
+
+      const thisWeekEl = document.getElementById("thisWeekTasks");
+      const upcomingEl = document.getElementById("upcomingTasks");
+      thisWeekEl.innerHTML = ""; upcomingEl.innerHTML = "";
+      if (weekNum === null) {
+        thisWeekEl.innerHTML = '<p style="font-size:0.82rem;color:var(--muted)">Set planting date to see timed tasks.</p><button class="btn btn-primary btn-sm" onclick="setPlantingDate()">Set Planting Date</button>';
+        return;
+      }
+      const thisWeek = tasks.filter(t => { const wn=Number(t.weekNum); return (wn===weekNum||(wn<=weekNum&&wn+1>=weekNum)) && t.status!=="Done"; });
+      const upcoming = tasks.filter(t => Number(t.weekNum)>weekNum && Number(t.weekNum)<=weekNum+2 && t.status!=="Done");
+      if (!thisWeek.length) thisWeekEl.innerHTML = '<p class="empty-state" style="padding:10px">No open tasks for Week '+weekNum+'.</p>';
+      else thisWeek.forEach(t => {
+        thisWeekEl.innerHTML += '<div style="padding:7px 0;border-bottom:1px solid var(--border)"><strong style="font-size:0.88rem">'+t.task+'</strong><div class="req-box" style="margin:5px 0"><strong>Required:</strong> '+(t.input||"—")+' • '+(t.volume||"—")+'</div><span class="status-pill status-'+t.status+'">'+t.status+'</span> <button class="btn btn-secondary btn-sm" style="margin-left:6px" onclick="openTask('+t.id+')">Edit</button></div>';
+      });
+      if (!upcoming.length) upcomingEl.innerHTML = '<p style="font-size:0.82rem;color:var(--muted)">Nothing in the next 2 weeks.</p>';
+      else upcoming.forEach(t => {
+        upcomingEl.innerHTML += '<div style="padding:5px 0;font-size:0.82rem;border-bottom:1px solid var(--border)"><strong>'+t.task+'</strong> <span style="color:var(--muted)">('+t.week+')</span><div style="font-size:0.72rem;color:var(--muted)">'+t.input+' • '+t.volume+'</div></div>';
+      });
+    }
+    function setPlantingDate() {
+      const d = prompt("Enter planting date (YYYY-MM-DD) for Week 0:", new Date().toISOString().slice(0,10));
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) { plantingDate=d; saveData(); renderDashboard(); showToast("Planting date saved"); }
+    }
+
+    // ========== TASKS ==========
+    function renderTasks() {
+      const list = document.getElementById("taskList"); list.innerHTML = "";
+      let filtered = currentFilter==="all" ? tasks : tasks.filter(t=>t.status===currentFilter);
+      let lastPhase = "";
+      filtered.forEach(t => {
+        if (t.phase !== lastPhase) { list.innerHTML += '<div class="phase-header">'+t.phase+'</div>'; lastPhase = t.phase; }
+        list.innerHTML += '<div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px"><h3 style="margin:0;flex:1;font-size:0.9rem">'+t.task+'</h3><span class="status-pill status-'+t.status+'">'+t.status+'</span></div><div class="task-meta">'+t.week+'</div><div class="req-box"><strong>Required:</strong> '+(t.input||"—")+'<br><strong>Volume:</strong> '+(t.volume||"—")+'</div>'+(t.instructions?'<div class="instruction-box">'+t.instructions+'</div>':'')+(t.dateDone?'<div class="task-meta">✅ Done '+t.dateDone+'</div>':'')+(t.notes?'<div class="task-meta" style="font-style:italic">📝 '+t.notes+'</div>':'')+'<div class="task-actions"><button class="btn btn-primary btn-sm" onclick="openTask('+t.id+')">Edit</button><button class="btn btn-secondary btn-sm" onclick="openLabourNewForTask('+t.id+')">+ Workers</button></div></div>';
+      });
+    }
+    document.querySelectorAll(".filter-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll(".filter-chip").forEach(c=>c.classList.remove("active"));
+        chip.classList.add("active"); currentFilter = chip.dataset.filter; renderTasks();
+      });
+    });
+    function openTask(id) {
+      currentTaskId = id; const t = tasks.find(x=>x.id===id);
+      document.getElementById("modalTitle").textContent = "Edit Task";
+      document.getElementById("editTaskName").value = t.task||"";
+      document.getElementById("editPhase").value = t.phase||"Pre-Planting";
+      document.getElementById("editWeek").value = t.week||"";
+      document.getElementById("editWeekNum").value = t.weekNum??"";
+      document.getElementById("editInput").value = t.input||"";
+      document.getElementById("editVolume").value = t.volume||"";
+      document.getElementById("editInstructions").value = t.instructions||"";
+      document.getElementById("editStatus").value = t.status||"Pending";
+      document.getElementById("editDate").value = t.dateDone||"";
+      document.getElementById("editNotes").value = t.notes||"";
+      document.getElementById("taskModal").classList.add("open");
+    }
+    function closeModal() { document.getElementById("taskModal").classList.remove("open"); currentTaskId=null; }
+    function saveTask() {
+      const t = tasks.find(x=>x.id===currentTaskId);
+      t.task = document.getElementById("editTaskName").value.trim()||t.task;
+      t.phase = document.getElementById("editPhase").value;
+      t.week = document.getElementById("editWeek").value.trim();
+      t.weekNum = Number(document.getElementById("editWeekNum").value)||0;
+      t.input = document.getElementById("editInput").value.trim();
+      t.volume = document.getElementById("editVolume").value.trim();
+      t.instructions = document.getElementById("editInstructions").value.trim();
+      t.status = document.getElementById("editStatus").value;
+      t.dateDone = document.getElementById("editDate").value;
+      t.notes = document.getElementById("editNotes").value.trim();
+      if (t.status==="Done" && !t.dateDone) t.dateDone = new Date().toISOString().slice(0,10);
+      saveData(); closeModal(); renderDashboard(); renderTasks(); showToast("Task saved");
+    }
+
+    // ========== MULTI-WORKER LABOUR ==========
+    function populateTaskSelect() {
+      const sel = document.getElementById("labTaskId");
+      sel.innerHTML = '<option value="">— Not linked —</option>';
+      tasks.forEach(t => { sel.innerHTML += '<option value="'+t.id+'">'+t.task+'</option>'; });
+    }
+
+    function togglePayType() {
+      const type = document.getElementById("labPayType").value;
+      document.getElementById("unitShared").classList.toggle("hidden", type !== "unit");
+      document.getElementById("hourlyShared").classList.toggle("hidden", type !== "hourly");
+      // Update labels inside existing rows
+      document.querySelectorAll(".worker-row").forEach(row => {
+        const qtyLabel = row.querySelector(".qty-label");
+        const qtyInput = row.querySelector(".qty-input");
+        if (type === "hourly") {
+          if (qtyLabel) qtyLabel.textContent = "Hours worked";
+          if (qtyInput) qtyInput.placeholder = "e.g. 6";
+        } else if (type === "unit") {
+          if (qtyLabel) qtyLabel.textContent = "Quantity (trees etc.)";
+          if (qtyInput) qtyInput.placeholder = "e.g. 156";
+        } else {
+          if (qtyLabel) qtyLabel.textContent = "Fixed amount (UGX)";
+          if (qtyInput) qtyInput.placeholder = "e.g. 5000";
+        }
+      });
+      recalcAllWorkers();
+    }
+
+    function addWorkerRow(prefill) {
+      workerRowCount++;
+      const id = "wr_" + workerRowCount;
+      const type = document.getElementById("labPayType").value;
+      let qtyLabel = "Quantity (trees etc.)";
+      let qtyPh = "e.g. 156";
+      if (type === "hourly") { qtyLabel = "Hours worked"; qtyPh = "e.g. 6"; }
+      if (type === "negotiated") { qtyLabel = "Fixed amount (UGX)"; qtyPh = "e.g. 5000"; }
+
+      const div = document.createElement("div");
+      div.className = "worker-row";
+      div.id = id;
+      div.innerHTML = `
+        <button type="button" class="remove-btn" onclick="removeWorkerRow('${id}')" title="Remove">×</button>
+        <div class="form-group" style="margin-bottom:8px;padding-right:30px;">
+          <label>Worker Name</label>
+          <input type="text" class="w-name" list="workerNameList" placeholder="Type or pick saved name" value="${(prefill&&prefill.name)||''}" />
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:6px;">
+            <label class="qty-label">${qtyLabel}</label>
+            <input type="number" class="qty-input" min="0" step="0.5" placeholder="${qtyPh}" value="${(prefill&&prefill.qty)||''}" oninput="recalcAllWorkers()" />
+          </div>
+          <div class="form-group" style="margin-bottom:6px;">
+            <label>Prev. Balance (UGX)</label>
+            <input type="number" class="prev-bal" min="0" step="10" value="${(prefill&&prefill.prevBal)||0}" oninput="recalcAllWorkers()" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:6px;">
+          <label>Amount Paid (UGX)</label>
+          <input type="number" class="amount-paid" min="0" step="10" value="${(prefill&&prefill.paid)!=null?prefill.paid:''}" placeholder="0 = not yet paid" oninput="recalcAllWorkers()" />
+        </div>
+        <div class="worker-calc calc-line">Amount due: 0 UGX</div>
+      `;
+      document.getElementById("workerRows").appendChild(div);
+      recalcAllWorkers();
+    }
+
+    function removeWorkerRow(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+      recalcAllWorkers();
+    }
+
+    function recalcAllWorkers() {
+      const type = document.getElementById("labPayType").value;
+      const unitRate = Number(document.getElementById("labUnitRate").value) || 0;
+      const hourRate = Number(document.getElementById("labRate").value) || 0;
+      let grand = 0;
+      document.querySelectorAll(".worker-row").forEach(row => {
+        const qty = Number(row.querySelector(".qty-input").value) || 0;
+        const prev = Number(row.querySelector(".prev-bal").value) || 0;
+        let newCost = 0, total = 0;
+        const paidInp = row.querySelector(".amount-paid");
+        const paid = paidInp ? (Number(paidInp.value) || 0) : 0;
+        if (type === "unit") {
+          newCost = Math.round(qty * unitRate);
+          total = newCost + prev;
+          row.querySelector(".calc-line").textContent = qty + " × " + formatUGX(unitRate) + " = " + formatUGX(newCost) + " + prev " + formatUGX(prev) + " → Due: " + formatUGX(total) + " | Paid: " + formatUGX(paid) + " | Left: " + formatUGX(total - paid);
+        } else if (type === "hourly") {
+          newCost = Math.round(qty * hourRate);
+          total = newCost + prev;
+          row.querySelector(".calc-line").textContent = qty + " hrs × " + formatUGX(hourRate) + " = " + formatUGX(newCost) + " + prev " + formatUGX(prev) + " → Due: " + formatUGX(total) + " | Paid: " + formatUGX(paid) + " | Left: " + formatUGX(total - paid);
+        } else {
+          total = qty + prev;
+          row.querySelector(".calc-line").textContent = "Fixed " + formatUGX(qty) + " + prev " + formatUGX(prev) + " → Due: " + formatUGX(total) + " | Paid: " + formatUGX(paid) + " | Left: " + formatUGX(total - paid);
+        }
+        grand += total;
+      });
+      document.getElementById("batchTotal").textContent = "Total due for this group: " + formatUGX(grand) + " UGX";
+    }
+
+    function calcSprayCosts() {
+      const tanks = Number(document.getElementById("labTanks").value)||0;
+      const water = Number(document.getElementById("labWaterCost").value)||0;
+      const perTank = Number(document.getElementById("labSprayPerTank").value)||0;
+      document.getElementById("labSprayTotal").value = (tanks * perTank) + water;
+    }
+
+    function renderLabour() {
+      const due = labourTotal();
+      const paid = labourPaidTotal();
+      document.getElementById("labourTotal").textContent = formatUGX(due)+" UGX";
+      document.getElementById("labourPaid").textContent = formatUGX(paid)+" UGX";
+      document.getElementById("labourOutstanding").textContent = formatUGX(due - paid)+" UGX";
+      document.getElementById("labourCount").textContent = labour.length;
+      document.getElementById("labourUnits").textContent = labourUnitsTotal();
+      renderSavedWorkers();
+      const list = document.getElementById("labourList"); list.innerHTML = "";
+      if (!labour.length) { list.innerHTML = '<p class="empty-state">No labour records. Tap “+ Add Workers”.</p>'; return; }
+      const sorted = [...labour].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+      sorted.forEach(r => {
+        const taskName = r.taskId ? (tasks.find(t=>t.id===Number(r.taskId))||{}).task : null;
+        let badge = '<span class="pay-type-badge pay-fixed">Negotiated</span>';
+        if (r.payType === "hourly") badge = '<span class="pay-type-badge pay-hourly">Per Hour</span>';
+        if (r.payType === "unit") badge = '<span class="pay-type-badge pay-unit">Per '+(r.unitName||"Unit")+'</span>';
+        let html = '<div class="card" style="cursor:pointer" onclick="openLabour('+r.id+')"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px"><div style="font-weight:600;font-size:0.88rem">'+(r.workers||"—")+'</div>'+badge+'</div><div class="task-meta">'+(r.date||"No date")+(taskName?" • "+taskName:"")+'</div>';
+        if (r.payType === "hourly") html += '<div class="task-meta">'+(r.hours||0)+' hrs × '+formatUGX(r.rate)+' UGX/hr</div>';
+        if (r.payType === "unit") {
+          html += '<div class="unit-box"><strong>'+(r.qty||0)+' '+(r.unitName||"units")+'</strong> × '+formatUGX(r.unitRate)+' = New Cost '+formatUGX(r.newCost)+'<br>Prev Bal: '+formatUGX(r.prevBal)+' → <strong>Total Due: '+formatUGX(r.amount)+'</strong></div>';
+        } else {
+          html += '<div class="labour-box"><strong>Amount due:</strong> '+formatUGX(r.amount)+' UGX</div>';
+        }
+        const paidAmt = Number(r.paid)||0;
+        const outstanding = (Number(r.amount)||0) - paidAmt;
+        if (paidAmt > 0 || outstanding !== (Number(r.amount)||0)) {
+          html += '<div style="font-size:0.78rem;margin-top:4px;">Paid: <strong style="color:var(--success)">'+formatUGX(paidAmt)+'</strong> &nbsp;|&nbsp; Outstanding: <strong style="color:'+(outstanding>0?'var(--danger)':'var(--success)')+'">'+formatUGX(outstanding)+'</strong></div>';
+        }
+        if (r.tanks>0 || r.waterCost>0 || r.sprayPerTank>0) {
+          html += '<div class="spray-box"><strong>Spraying:</strong> '+(r.tanks||0)+' × 20L • Water '+formatUGX(r.waterCost)+' • /tank '+formatUGX(r.sprayPerTank)+' • Total '+formatUGX(r.sprayTotal)+'</div>';
+        }
+        if (r.notes) html += '<div class="task-meta" style="font-style:italic">📝 '+r.notes+'</div>';
+        html += '</div>';
+        list.innerHTML += html;
+      });
+    }
+
+    function openLabourNew() {
+      isNewLabour = true; currentLabourId = null;
+      document.getElementById("labourModalTitle").textContent = "Add Workers";
+      document.getElementById("labDate").value = new Date().toISOString().slice(0,10);
+      populateTaskSelect();
+      document.getElementById("labTaskId").value = "";
+      document.getElementById("labPayType").value = "unit";
+      document.getElementById("labUnitName").value = "tree";
+      document.getElementById("labUnitRate").value = "30";
+      document.getElementById("labRate").value = "3000";
+      document.getElementById("labTanks").value = "";
+      document.getElementById("labWaterCost").value = "";
+      document.getElementById("labSprayPerTank").value = "";
+      document.getElementById("labSprayTotal").value = "";
+      document.getElementById("labNotes").value = "";
+      document.getElementById("deleteLabourBtn").style.display = "none";
+      document.getElementById("workerRows").innerHTML = "";
+      workerRowCount = 0;
+      // Start with 3 empty rows (user can add more)
+      addWorkerRow();
+      addWorkerRow();
+      addWorkerRow();
+      togglePayType();
+      document.getElementById("labourModal").classList.add("open");
+    }
+    function openLabourNewForTask(taskId) {
+      openLabourNew();
+      document.getElementById("labTaskId").value = String(taskId);
+    }
+
+    // Edit single existing record (still one worker)
+    function openLabour(id) {
+      isNewLabour = false; currentLabourId = id;
+      const r = labour.find(x=>x.id===id);
+      document.getElementById("labourModalTitle").textContent = "Edit Worker Record";
+      document.getElementById("labDate").value = r.date||"";
+      populateTaskSelect();
+      document.getElementById("labTaskId").value = r.taskId||"";
+      document.getElementById("labPayType").value = r.payType||"unit";
+      document.getElementById("labUnitName").value = r.unitName||"tree";
+      document.getElementById("labUnitRate").value = r.unitRate??"30";
+      document.getElementById("labRate").value = r.rate??"3000";
+      document.getElementById("labTanks").value = r.tanks??"";
+      document.getElementById("labWaterCost").value = r.waterCost??"";
+      document.getElementById("labSprayPerTank").value = r.sprayPerTank??"";
+      document.getElementById("labSprayTotal").value = r.sprayTotal??"";
+      document.getElementById("labNotes").value = r.notes||"";
+      document.getElementById("deleteLabourBtn").style.display = "block";
+      document.getElementById("workerRows").innerHTML = "";
+      workerRowCount = 0;
+      addWorkerRow({
+        name: r.workers,
+        qty: r.payType === "negotiated" ? r.amount - (r.prevBal||0) : (r.payType === "hourly" ? r.hours : r.qty),
+        prevBal: r.prevBal || 0,
+        paid: r.paid || 0
+      });
+      togglePayType();
+      document.getElementById("labourModal").classList.add("open");
+    }
+
+    function closeLabourModal() {
+      document.getElementById("labourModal").classList.remove("open");
+      currentLabourId = null; isNewLabour = false;
+    }
+
+    function saveLabourBatch() {
+      const date = document.getElementById("labDate").value;
+      const taskId = document.getElementById("labTaskId").value || "";
+      const payType = document.getElementById("labPayType").value;
+      const unitName = document.getElementById("labUnitName").value.trim() || "unit";
+      const unitRate = Number(document.getElementById("labUnitRate").value) || 0;
+      const hourRate = Number(document.getElementById("labRate").value) || 0;
+      const tanks = Number(document.getElementById("labTanks").value) || 0;
+      const waterCost = Number(document.getElementById("labWaterCost").value) || 0;
+      const sprayPerTank = Number(document.getElementById("labSprayPerTank").value) || 0;
+      const sprayTotal = Number(document.getElementById("labSprayTotal").value) || 0;
+      const notes = document.getElementById("labNotes").value.trim();
+
+      const rows = document.querySelectorAll(".worker-row");
+      if (!rows.length) { alert("Add at least one worker."); return; }
+
+      // If editing a single existing record
+      if (!isNewLabour && currentLabourId) {
+        const row = rows[0];
+        const name = row.querySelector(".w-name").value.trim();
+        if (!name) { alert("Enter worker name."); return; }
+        const qty = Number(row.querySelector(".qty-input").value) || 0;
+        const prev = Number(row.querySelector(".prev-bal").value) || 0;
+        const paid = Number(row.querySelector(".amount-paid").value) || 0;
+        let newCost = 0, amount = 0, hours = 0, rate = 0;
+        if (payType === "unit") {
+          newCost = Math.round(qty * unitRate); amount = newCost + prev; rate = unitRate;
+        } else if (payType === "hourly") {
+          hours = qty; rate = hourRate; newCost = Math.round(hours * rate); amount = newCost + prev;
+        } else {
+          amount = qty + prev; newCost = qty;
+        }
+        const rec = labour.find(x => x.id === currentLabourId);
+        Object.assign(rec, {
+          date, taskId, workers: name, payType, unitName, qty: payType==="unit"?qty:0,
+          unitRate: payType==="unit"?unitRate:0, hours: payType==="hourly"?hours:0,
+          rate: payType==="hourly"?rate:0, prevBal: prev, newCost, amount, paid,
+          tanks, waterCost, sprayPerTank, sprayTotal, notes
+        });
+        if (name && !savedWorkers.includes(name)) { savedWorkers.push(name); savedWorkers.sort((a,b)=>a.localeCompare(b)); }
+        saveData(); closeLabourModal(); renderLabour(); renderDashboard(); renderBudget();
+        showToast("Record updated"); return;
+      }
+
+      // Batch create
+      let saved = 0;
+      rows.forEach(row => {
+        const name = row.querySelector(".w-name").value.trim();
+        if (!name) return;
+        const qty = Number(row.querySelector(".qty-input").value) || 0;
+        const prev = Number(row.querySelector(".prev-bal").value) || 0;
+        const paid = Number(row.querySelector(".amount-paid").value) || 0;
+        let newCost = 0, amount = 0, hours = 0, rate = 0;
+        if (payType === "unit") {
+          newCost = Math.round(qty * unitRate); amount = newCost + prev; rate = unitRate;
+        } else if (payType === "hourly") {
+          hours = qty; rate = hourRate; newCost = Math.round(hours * rate); amount = newCost + prev;
+        } else {
+          amount = qty + prev; newCost = qty;
+        }
+        labour.push({
+          id: nextLabourId++,
+          date, taskId, workers: name, payType, unitName,
+          qty: payType==="unit"?qty:0, unitRate: payType==="unit"?unitRate:0,
+          hours: payType==="hourly"?hours:0, rate: payType==="hourly"?rate:0,
+          prevBal: prev, newCost, amount, paid,
+          tanks, waterCost, sprayPerTank, sprayTotal, notes
+        });
+        if (!savedWorkers.includes(name)) savedWorkers.push(name);
+        saved++;
+      });
+      if (saved === 0) { alert("Enter at least one worker name."); return; }
+      savedWorkers.sort((a,b) => a.localeCompare(b));
+      saveData(); closeLabourModal(); renderLabour(); renderDashboard(); renderBudget();
+      showToast(saved + " worker(s) saved");
+    }
+
+    function deleteLabour() {
+      if (!confirm("Delete this record?")) return;
+      labour = labour.filter(x => x.id !== currentLabourId);
+      saveData(); closeLabourModal(); renderLabour(); renderDashboard(); renderBudget();
+      showToast("Deleted");
+    }
+
+    // ========== BUDGET ==========
+    function renderBudget() {
+      const totalBudgeted = budget.reduce((s,b)=>s+(Number(b.budgeted)||0),0);
+      const matSpent = budget.reduce((s,b)=>s+(Number(b.actual)||0),0);
+      const labCost = labourTotal(), grandSpent = matSpent + labCost, variance = totalBudgeted - grandSpent;
+      document.getElementById("totalBudgeted").textContent = formatUGX(totalBudgeted)+" UGX";
+      document.getElementById("totalSpent").textContent = formatUGX(matSpent)+" UGX";
+      document.getElementById("totalLabourInBudget").textContent = formatUGX(labCost)+" UGX";
+      document.getElementById("grandTotalSpent").textContent = formatUGX(grandSpent)+" UGX";
+      const varEl = document.getElementById("totalVariance");
+      varEl.textContent = (variance>=0?"+":"")+formatUGX(variance)+" UGX";
+      varEl.className = variance>=0 ? "variance-pos" : "variance-neg";
+      const list = document.getElementById("budgetList"); list.innerHTML = "";
+      if (!budget.length) { list.innerHTML = '<p class="empty-state">No cost items.</p>'; return; }
+      budget.forEach(b => {
+        const varItem = (Number(b.budgeted)||0) - (Number(b.actual)||0);
+        list.innerHTML += '<div class="card" style="cursor:pointer" onclick="openBudget('+b.id+')"><div style="font-size:0.85rem;font-weight:600">'+b.item+'</div><div class="task-meta">'+b.category+' • Qty: '+(b.qty??"—")+' × '+formatUGX(b.unitCost)+'</div><div class="budget-card-grid"><div><div class="lbl">Budgeted</div><div>'+formatUGX(b.budgeted)+'</div></div><div><div class="lbl">Actual</div><div style="font-weight:700">'+formatUGX(b.actual)+'</div></div><div><div class="lbl">Variance</div><div class="'+(varItem>=0?'variance-pos':'variance-neg')+'">'+(varItem>=0?'+':'')+formatUGX(varItem)+'</div></div></div></div>';
+      });
+    }
+    function openBudget(id) {
+      isNewBudget=false; currentBudgetId=id; const b=budget.find(x=>x.id===id);
+      document.getElementById("budgetModalTitle").textContent="Edit Cost Item";
+      document.getElementById("editItemName").value=b.item||"";
+      document.getElementById("editCategory").value=b.category||"Other";
+      document.getElementById("editQty").value=b.qty??"";
+      document.getElementById("editUnitCost").value=b.unitCost??"";
+      document.getElementById("editBudgeted").value=b.budgeted??"";
+      document.getElementById("editActual").value=b.actual??"";
+      document.getElementById("editBudgetNotes").value=b.notes||"";
+      document.getElementById("deleteBudgetBtn").style.display="block";
+      document.getElementById("budgetModal").classList.add("open");
+    }
+    function openBudgetNew() {
+      isNewBudget=true; currentBudgetId=null;
+      document.getElementById("budgetModalTitle").textContent="Add New Cost Item";
+      document.getElementById("editItemName").value="";
+      document.getElementById("editCategory").value="Other";
+      document.getElementById("editQty").value="";
+      document.getElementById("editUnitCost").value="";
+      document.getElementById("editBudgeted").value="";
+      document.getElementById("editActual").value="0";
+      document.getElementById("editBudgetNotes").value="";
+      document.getElementById("deleteBudgetBtn").style.display="none";
+      document.getElementById("budgetModal").classList.add("open");
+    }
+    function closeBudgetModal() { document.getElementById("budgetModal").classList.remove("open"); currentBudgetId=null; isNewBudget=false; }
+    function autoCalcBudgeted() {
+      const q=Number(document.getElementById("editQty").value)||0, u=Number(document.getElementById("editUnitCost").value)||0;
+      if (q&&u) document.getElementById("editBudgeted").value=Math.round(q*u);
+    }
+    function saveBudgetItem() {
+      const item=document.getElementById("editItemName").value.trim();
+      if (!item) { alert("Enter item description."); return; }
+      const data={ item, category:document.getElementById("editCategory").value, qty:Number(document.getElementById("editQty").value)||0, unitCost:Number(document.getElementById("editUnitCost").value)||0, budgeted:Number(document.getElementById("editBudgeted").value)||0, actual:Number(document.getElementById("editActual").value)||0, notes:document.getElementById("editBudgetNotes").value.trim() };
+      if (isNewBudget) { data.id=nextBudgetId++; budget.push(data); }
+      else Object.assign(budget.find(x=>x.id===currentBudgetId), data);
+      saveData(); closeBudgetModal(); renderBudget(); renderDashboard(); showToast("Saved");
+    }
+    function deleteBudgetItem() {
+      if (!confirm("Delete?")) return;
+      budget=budget.filter(x=>x.id!==currentBudgetId);
+      saveData(); closeBudgetModal(); renderBudget(); renderDashboard(); showToast("Deleted");
+    }
+
+    function renderNotes() {
+      const list=document.getElementById("notesList"); const items=[];
+      tasks.filter(t=>t.notes||t.dateDone).forEach(t=>items.push({date:t.dateDone||"",title:t.task,body:t.notes||"",type:"task"}));
+      labour.filter(r=>r.notes||r.workers).forEach(r=>items.push({date:r.date||"",title:"Labour: "+(r.workers||""),body:r.notes||"",type:"labour"}));
+      items.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+      if (!items.length) { list.innerHTML='<p class="empty-state">No notes yet.</p>'; return; }
+      list.innerHTML="";
+      items.forEach(it=>{ list.innerHTML+='<div style="padding:8px 0;border-bottom:1px solid var(--border)"><div style="font-weight:600;font-size:0.88rem">'+it.title+'</div><div class="task-meta">'+(it.date||"No date")+' • '+it.type+'</div>'+(it.body?'<div style="margin-top:3px;font-size:0.82rem">'+it.body+'</div>':'')+'</div>'; });
+    }
+
+    function exportData() {
+      const data={tasks,budget,labour,plantingDate,exportedAt:new Date().toISOString()};
+      const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+      const url=URL.createObjectURL(blob); const a=document.createElement("a");
+      a.href=url; a.download="maize_plantation_"+new Date().toISOString().slice(0,10)+".json"; a.click();
+      URL.revokeObjectURL(url); showToast("Exported");
+    }
+    function resetSeason() {
+      if (!confirm("Clear all progress, labour and costs?")) return;
+      tasks=JSON.parse(JSON.stringify(defaultTasks)); budget=JSON.parse(JSON.stringify(defaultBudget));
+      labour=[]; plantingDate=null; nextBudgetId=100; nextLabourId=1; // keep savedWorkers
+      saveData(); renderDashboard(); renderTasks(); renderLabour(); renderBudget(); renderNotes(); showToast("Reset");
+    }
+
+    let deferredPrompt=null;
+    window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); deferredPrompt=e; const btn=document.getElementById("installBtn"); if(btn) btn.style.display="block"; });
+    function installApp() {
+      if (!deferredPrompt) { alert("Open in Chrome → menu (⋮) → Install app / Add to Home screen."); return; }
+      deferredPrompt.prompt(); deferredPrompt.userChoice.then(()=>{ deferredPrompt=null; });
+    }
+    if ("serviceWorker" in navigator) window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+
+    loadData(); renderDashboard();
+  </script>
+</body>
+</html>
